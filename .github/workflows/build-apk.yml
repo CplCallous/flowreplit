@@ -41,6 +41,19 @@ jobs:
           perl -0pi -e 's/val context = appContext\.reactContext \?: return\@AsyncFunction\n\s*context\.startActivity\(\n/appContext.reactContext?.startActivity(\n/g' "$F"
           grep -n "reactContext?.startActivity" "$F"
 
+      - name: Fix remaining zero-argument AsyncFunction early returns
+        run: |
+          python3 - << 'PY'
+          import re
+          p = "Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/src/main/java/expo/modules/swiftlauncher/SwiftLauncherModule.kt"
+          s = open(p).read()
+          def fix(m):
+              return re.sub(r"return@AsyncFunction(?=[ \t]*\n)", "return@AsyncFunction null", m.group(0))
+          s = re.sub(r'AsyncFunction\("[^"]*"\) \{\n.*?\n    \}\n', fix, s, flags=re.S)
+          open(p, "w").write(s)
+          PY
+          grep -n "return@AsyncFunction null" Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/src/main/java/expo/modules/swiftlauncher/SwiftLauncherModule.kt
+
       - uses: pnpm/action-setup@v4
         with:
           version: 10
