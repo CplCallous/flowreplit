@@ -17,9 +17,10 @@ jobs:
           unzip -q launcherreplit.zip
           ls Android-launcher
 
-      - name: Mark local launcher module as non-publishable
+      - name: Add missing namespace to local launcher module
         run: |
-          printf '\nexpoModule {\n  canBePublished false\n}\n' >> Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/build.gradle
+          printf "\nandroid {\n  namespace 'expo.modules.swiftlauncher'\n}\n" >> Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/build.gradle
+          tail -8 Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/build.gradle
 
       - uses: pnpm/action-setup@v4
         with:
