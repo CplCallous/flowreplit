@@ -1,0 +1,53 @@
+name: Build Android APK (from zip)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: |
+          unzip -q launcherreplit.zip
+          ls Android-launcher
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: Android-launcher/pnpm-lock.yaml
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies (workspace root)
+        working-directory: Android-launcher
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate native Android project
+        working-directory: Android-launcher/artifacts/swift-launcher
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build release APK
+        working-directory: Android-launcher/artifacts/swift-launcher/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-launcher-apk
+          path: Android-launcher/artifacts/swift-launcher/android/app/build/outputs/apk/release/*.apk
