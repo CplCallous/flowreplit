@@ -17,10 +17,23 @@ jobs:
           unzip -q launcherreplit.zip
           ls Android-launcher
 
-      - name: Add missing namespace to local launcher module
+      - name: Complete the local launcher module's build.gradle
         run: |
-          printf "\nandroid {\n  namespace 'expo.modules.swiftlauncher'\n}\n" >> Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/build.gradle
-          tail -8 Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/build.gradle
+          cat >> Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/build.gradle << 'GRADLE'
+
+          android {
+            namespace 'expo.modules.swiftlauncher'
+            defaultConfig {
+              versionCode 1
+              versionName '1.0.0'
+            }
+          }
+
+          expoModule {
+            canBePublished false
+          }
+          GRADLE
+          tail -15 Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/build.gradle
 
       - uses: pnpm/action-setup@v4
         with:
