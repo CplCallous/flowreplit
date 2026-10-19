@@ -35,6 +35,12 @@ jobs:
           GRADLE
           tail -15 Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/build.gradle
 
+      - name: Fix Kotlin return-type errors in SwiftLauncherModule.kt
+        run: |
+          F=Android-launcher/artifacts/swift-launcher/modules/swift-launcher/android/src/main/java/expo/modules/swiftlauncher/SwiftLauncherModule.kt
+          perl -0pi -e 's/val context = appContext\.reactContext \?: return\@AsyncFunction\n\s*context\.startActivity\(\n/appContext.reactContext?.startActivity(\n/g' "$F"
+          grep -n "reactContext?.startActivity" "$F"
+
       - uses: pnpm/action-setup@v4
         with:
           version: 10
