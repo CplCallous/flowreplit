@@ -57,12 +57,22 @@ jobs:
         working-directory: Android-launcher
         run: pnpm install --frozen-lockfile
 
+      - name: Make @expo/config-plugins resolvable from the app (pnpm strict layout)
+        working-directory: Android-launcher/artifacts/swift-launcher
+        run: |
+          mkdir -p node_modules/@expo
+          target=$(ls -d ../../node_modules/.pnpm/@expo+config-plugins@*/node_modules/@expo/config-plugins | head -1)
+          ln -sfn "$(realpath "$target")" node_modules/@expo/config-plugins
+          node -e "console.log('resolved:', require.resolve('@expo/config-plugins'))"
+
       - name: Generate native Android project
         working-directory: Android-launcher/artifacts/swift-launcher
         run: npx expo prebuild --platform android --clean
 
       - name: Build release APK
         working-directory: Android-launcher/artifacts/swift-launcher/android
+        env:
+          NODE_ENV: production
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Upload APK
